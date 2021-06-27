@@ -2,6 +2,7 @@
 #define __INSTRUCTION_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define INSTRUCTIONS_COUNT 0x6
 
@@ -10,9 +11,10 @@ typedef enum{
     REG_MEM = 1 << 1,
     REG_REG = 1 << 2,
     MEM_REG = 1 << 3,
-    IMMEDIATE = 1 << 4,
-    REG = 1 << 5,
-    NOTHING = 1 << 6
+    IMMEDIATE_IMMEDIATE = 1 << 4,
+    REG_IMMEDIATE = 1 << 5,
+    REG = 1 << 6,
+    NOTHING = 1 << 7
 } addr_modes_e;
 
 #define NULL_STR "NULL"
@@ -22,6 +24,9 @@ typedef enum{
 #define JMPEQ_STR "JMPEQ"
 #define JMPMR_STR "JMPMR"
 #define CMP_STR "CMP"
+#define NOT_STR "NOT"
+#define AND_STR "AND"
+#define OR_STR "OR"
 
 typedef struct{
     char* name;

@@ -5,6 +5,14 @@ instruction_t instruction_set[INSTRUCTIONS_COUNT];
 const instruction_t null_instruction = {.name = NULL_STR, .gen_opcode_str = NULL, .opcode = 0, .supported_addr_modes = 0};
 
 extern uint16_t* gen_STORE_opcode_str(char* line[]);
+extern uint16_t* gen_ADD_opcode_str(char* line[]);
+extern uint16_t* gen_SUB_opcode_str(char* line[]);
+extern uint16_t* gen_JMPEQ_opcode_str(char* line[]);
+extern uint16_t* gen_JMPMR_opcode_str(char* line[]);
+extern uint16_t* gen_CMP_opcode_str(char* line[]);
+extern uint16_t* gen_NOT_opcode_str(char* line[]);
+extern uint16_t* gen_AND_opcode_str(char* line[]);
+extern uint16_t* gen_OR_opcode_str(char* line[]);
 
 void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap, uint16_t*(*gen_opcode_str)(char* line[])){
     instruction_t i = {.gen_opcode_str = gen_opcode_str, .name = name, .opcode = opcode, .supported_addr_modes = addr_mode_bitmap};
