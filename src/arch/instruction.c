@@ -1,6 +1,9 @@
 #include <arch/instruction.h>
 #include <stddef.h>
 
+instruction_t instruction_set[INSTRUCTIONS_COUNT];
+const instruction_t null_instruction = {.name = NULL_STR, .gen_opcode_str = NULL, .opcode = 0, .supported_addr_modes = 0};
+
 extern uint16_t* gen_STORE_opcode_str(char* line[]);
 
 void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap, uint16_t*(*gen_opcode_str)(char* line[])){
@@ -9,7 +12,6 @@ void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap, 
 }
 
 void register_instructions(){
-    instruction_t null_instruction = {.name = NULL};
     for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
         instruction_set[i] = null_instruction;
     }

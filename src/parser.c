@@ -8,17 +8,17 @@ char** get_line_array(char* line){
     uint64_t line_len = strlen(line);
     uint64_t whitespace_count = 0;
 
-    for(uint64_t i = 0; i < line_len; i++){
-        if(line[i] == ' ') whitespace_count++;
+    for(uint64_t i = 0; i <= line_len; i++){
+        if(line[i] == ' ' || line[i] == '\0') whitespace_count++;
     }
 
     char** line_array = (char**)malloc(whitespace_count * sizeof(char*));
 
     uint64_t word_index = 0;
     uint64_t whitespace_index = 0;
-    for(uint64_t i = 0; i < line_len; i++){
+    for(uint64_t i = 0; i <= line_len; i++){
         if(line[i] != ' ' && line[i] != '\0') word_index++;
-        else{
+        else {
             char* word = (char*)malloc(word_index * sizeof(char) + 1);
             for(uint64_t j = 0; j < word_index; j++){
                 word[j] = line[i - word_index + j];
@@ -30,21 +30,23 @@ char** get_line_array(char* line){
         }
     }
 
-    printf("%d\n", (int)whitespace_count);
-
-    for(uint64_t i = 0; i < whitespace_count; i++){
-        printf("%s\n", line_array[i]);
-    }
-
     return line_array;
-
 }
 
 void parse_line(char* line){
     
-
+    char** line_array = get_line_array(line);
     
+    instruction_t line_instruction = null_instruction;
+
     for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
-        
+        if(!strcmp(line_array[0], instruction_set[i].name)){
+            line_instruction = instruction_set[i];
+            break;
+        }
+    }
+
+    if(!strcmp(line_instruction.name, null_instruction.name)){
+        printf("Unknown instruction: %s\n", line_instruction.name);
     }
 }

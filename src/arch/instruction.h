@@ -15,6 +15,7 @@ typedef enum{
     NOTHING = 1 << 6
 } addr_modes_e;
 
+#define NULL_STR "NULL"
 #define STORE_STR "STORE"
 #define ADD_STR "ADD"
 #define SUB_STR "SUB"
@@ -29,7 +30,8 @@ typedef struct{
     uint16_t* (*gen_opcode_str)(char* line[]);
 } instruction_t;
 
-instruction_t instruction_set[INSTRUCTIONS_COUNT];
+extern instruction_t instruction_set[INSTRUCTIONS_COUNT];
+extern const instruction_t null_instruction;
 
 void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap, uint16_t*(*gen_opcode_str)(char* line[]));
 void register_instructions();
