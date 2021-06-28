@@ -3,16 +3,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-__attribute__((unused))static uint32_t line_number;
+static uint32_t line_number;
+label_t labels[0x400];
+definition_t definitions[0x400];
+
+uint16_t label_index;
+uint16_t definition_index;
 
 void parser_error(char* message){
     printf("[ERROR][Parsing_Phase]: %s; On line: %d\n", message, line_number);
     exit(-1);
 }
 
+void preprocessor_error(char* message){
+    printf("[ERROR][Preprocessing_Phase]: %s; On line: %d\n", message, line_number);
+    exit(-1);
+}
+
 void free_line_array(char** line_array){
     for(uint32_t i = 0; i < 0x3; i++){
-        free(line_array[i]);
+        if(line_array[i] != NULL){
+            free(line_array[i]);
+        }
     }
     free(line_array);
 }
@@ -38,7 +50,8 @@ char** get_line_array(char* line){
         if(line[i] != ' ' && line[i] != '\0' && line[i] != '\n') word_index++;
         else {
             if(line[i] == '\0' && whitespace_index == 0){
-                line_array[0] = line;
+                line_array[0] = (char*)malloc(strlen(line));
+                strcpy(line_array[0], line);
                 line_array[1] = NULL;
                 line_array[2] = NULL;
                 return line_array;
@@ -143,8 +156,12 @@ addr_modes_e get_addr_mode(char** line_array){
 
     switch(line_array[1][0]){
         case '$':{
+            if(line_array[2] == NULL){
+                return MEM;
+            }
+            
             if(line_array[2][0] == '$'){
-                return MEM_MEM;
+                parser_error("MEM_MEM addressing mode not supported");
             }else if(line_array[2][0] == '#'){
                 return MEM_IMMEDIATE;
             }else if(is_string_register(line_array[2])){
@@ -168,11 +185,102 @@ addr_modes_e get_addr_mode(char** line_array){
     return NOTHING;
 }
 
+void preprocess_line(char* line, uint32_t line_nmbr){
+    line_number = line_nmbr;
+    char** line_array = get_line_array(line);
+
+    if(line_array[0] == NULL){
+        preprocessor_error("Error creating line array");
+    }
+
+    uint32_t word1_len = strlen(line_array[0]);
+
+    if(line_array[0][word1_len - 1] == ':'){
+        if(line_array[1] != NULL || line_array[2] != NULL){
+            preprocessor_error("Too many operands for label definition");
+        }
+        
+        char* string = (char*)malloc(word1_len - 1);
+        memcpy(string, line_array[0], word1_len - 1);
+        string[word1_len] = '\0';
+
+        for(uint32_t i = 0; i < label_index; i++){
+            if(!strcmp(labels[i].name, string)){
+                parser_error("Redifined label");
+            }
+        }
+
+        label_t label = {.address = line_number * 6, .name = string};
+        labels[label_index] = label;
+        label_index++;
+        return;
+    }
+
+    if(!strcmp(line_array[1], "equ")){    
+        
+        uint64_t value;
+        char* value_str = NULL;
+
+        if(line_array[2][0] != '#' || line_array[2][0] == '$'){
+            preprocessor_error("Couldn't get value from definition");
+        }
+
+        if(line_array[2] == NULL){
+            preprocessor_error("No value specified for definition");
+        }else{
+            value_str = line_array[2] + 1;
+        }
+
+        if(value_str != NULL){
+            if(value_str[0] == 'x'){
+                value_str++;
+                value = strtol(value_str, NULL, 16);
+            }else{
+                value = atoi(value_str);
+            }
+        }
+        if(value > UINT16_MAX){
+            preprocessor_error("Operand value too large to be supported");
+        }
+
+        char* string = (char*)malloc(word1_len - 1);
+        memcpy(string, line_array[0], word1_len - 1);
+        string[word1_len] = '\0';
+
+        for(uint32_t i = 0; i < definition_index; i++){
+            if(!strcmp(definitions[i].name, string)){
+                parser_error("Redifined definition");
+            }
+        }
+
+        definition_t definition = {.value = (uint16_t)value, .name = string};
+        definitions[definition_index] = definition;
+        definition_index++;
+        printf("%d\n", (uint16_t)value);
+    }
+}
+
 void parse_line(char* line, uint32_t line_nmbr){
 
     line_number = line_nmbr;
 
     char** line_array = get_line_array(line);
+
+    if(line_array[0] == NULL){
+        parser_error("Error creating line array");
+    }
+
+    if(line_array[0][strlen(line_array[0]) - 1] == ':'){
+        free_line_array(line_array);
+        return;
+    }
+    
+    if(line_array[1] != NULL){
+        if(!strcmp(line_array[1], "equ")){
+            free_line_array(line_array);
+            return;
+        }
+    }
 
     instruction_t line_instruction = null_instruction;
 

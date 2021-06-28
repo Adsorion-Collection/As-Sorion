@@ -4,12 +4,16 @@
 #include <parser.h>
 #include <arch/instruction.h>
 
-void assemble(string file_name){
-    
+void assemble(char* string){
+   
 }
 
 int main(void){
    register_instructions();
-   parse_line("STORE $x3299 #x3300", 0);
+   parse_line("e equ #433", 0);
    assemble("FFFF");
+
+   for(uint32_t i = 0; i < label_index; i++){
+      printf("%s\n", labels[i].name);
+   }
 }
