@@ -36,13 +36,12 @@ typedef struct{
     char* name;
     uint8_t opcode;
     uint8_t supported_addr_modes; // Bitmap of supported addressing modes
-    uint16_t* (*gen_opcode_str)(char* line[]);
 } instruction_t;
 
 extern instruction_t instruction_set[INSTRUCTIONS_COUNT];
 extern const instruction_t null_instruction;
 
-void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap, uint16_t*(*gen_opcode_str)(char* line[]));
+void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap);
 void register_instructions();
 
 #endif
