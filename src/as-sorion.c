@@ -9,6 +9,6 @@ void assemble(string file_name){
 
 int main(void){
    register_instructions();
-   parse_line("DDD      EEE EE DD fdFF");
+   parse_line("fse", 0);
    assemble("FFFF"); 
 }

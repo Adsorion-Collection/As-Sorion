@@ -11,11 +11,13 @@ typedef enum{
     REG_MEM = 1 << 1,
     REG_REG = 1 << 2,
     MEM_REG = 1 << 3,
-    IMMEDIATE_IMMEDIATE = 1 << 4,
+    MEM_IMMEDIATE = 1 << 4,
     REG_IMMEDIATE = 1 << 5,
     REG = 1 << 6,
     NOTHING = 1 << 7
 } addr_modes_e;
+
+#define REGISTER_COUNT 0x6
 
 #define NULL_STR "NULL"
 #define STORE_STR "STORE"
@@ -27,6 +29,8 @@ typedef enum{
 #define NOT_STR "NOT"
 #define AND_STR "AND"
 #define OR_STR "OR"
+
+extern char* REG_strings[REGISTER_COUNT];
 
 typedef struct{
     char* name;
