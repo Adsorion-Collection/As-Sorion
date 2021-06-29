@@ -30,6 +30,12 @@ char** get_line_array(char* line);
 uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_array);
 
 bool is_string_register(char* str);
+bool is_string_label(char* str);
+bool is_string_definition(char* str);
+
+label_t get_label(char* str);
+definition_t get_definition(char* str);
+
 addr_modes_e get_addr_mode(char** line_array);
 
 void preprocess_line(char* line, uint32_t line_nmbr);

@@ -7,8 +7,8 @@ static uint32_t line_number;
 label_t labels[0x400];
 definition_t definitions[0x400];
 
-uint16_t label_index;
-uint16_t definition_index;
+uint16_t label_index = 0;
+uint16_t definition_index = 0;
 
 void parser_error(char* message){
     printf("[ERROR][Parsing_Phase]: %s; On line: %d\n", message, line_number);
@@ -101,35 +101,61 @@ uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_arr
     }else{
         operand2_value_str = line_array[2] + 1;
     }
-
-    if(operand1_value_str != NULL){
-        if(operand1_value_str[0] == 'x'){
-            operand1_value_str++;
-            operand1_value = strtol(operand1_value_str, NULL, 16);
+    
+    if(is_string_definition(line_array[1])){
+        operand1_value = get_definition(line_array[1]).value;
+    }else if(is_string_label(line_array[1])){
+        operand1_value = get_label(line_array[1]).address;
+    }else{
+        if(operand1_value_str != NULL){
+            if(operand1_value_str[0] == 'x'){
+                operand1_value_str++;
+                operand1_value = strtol(operand1_value_str, NULL, 16);
+            }else{
+                operand1_value = atoi(operand1_value_str);
+            }
         }else{
-            operand1_value = atoi(operand1_value_str);
+            parser_error("Invalid instruction addressing mode");
+        }
+    
+        if(operand1_value > UINT16_MAX){
+            parser_error("Operand value too large to be supported");
         }
     }
-    if(operand1_value > UINT16_MAX){
-        parser_error("Operand value too large to be supported");
-    }
 
-    if(operand2_value_str != NULL){
-        if(operand2_value_str[0] == 'x'){
-            operand2_value_str++;
-            operand2_value = strtol(operand2_value_str, NULL, 16);
+    if(is_string_definition(line_array[2])){
+        operand2_value = get_definition(line_array[2]).value;
+    }else if(is_string_label(line_array[2])){
+        operand2_value = get_label(line_array[2]).address;
+    }else{
+        if(operand2_value_str){
+            if(operand2_value_str[0] == 'x'){
+                operand2_value_str++;
+                operand2_value = strtol(operand2_value_str, NULL, 16);
+            }else{
+                operand2_value = atoi(operand2_value_str);
+            }
         }else{
-            operand2_value = atoi(operand2_value_str);
+            parser_error("Invalid instruction addressing mode");
+        }
+
+        if(operand2_value > UINT16_MAX){
+            parser_error("Operand value too large to be supported");
         }
     }
-    if(operand2_value > UINT16_MAX){
-        parser_error("Operand value too large to be supported");
-    }
+
 
     uint16_t* opcode_str = (uint16_t*)malloc(3 * sizeof(uint16_t));
     opcode_str[0] = (opcode << 8) | addr_mode;
     opcode_str[1] = (uint16_t)operand1_value;
     opcode_str[2] = (uint16_t)operand2_value;
+    if(addr_mode == REG || addr_mode == REG_IMMEDIATE || addr_mode == REG_MEM){
+        opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
+    }
+    if(addr_mode == REG_REG){
+        opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
+        opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 1] - '0');
+    }
     return opcode_str;
 }
 
@@ -142,13 +168,52 @@ bool is_string_register(char* str){
     return false;
 }
 
+bool is_string_label(char* str){
+    for(uint32_t i = 0; i < label_index; i++){
+        if(!strcmp(labels[i].name, str)){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool is_string_definition(char* str){
+    for(uint32_t i = 0; i < definition_index; i++){
+        if(!strcmp(definitions[i].name, str)){
+            return true;
+        }
+    }
+    return false;
+}
+
+label_t get_label(char* str){
+    label_t null_label = {.name = NULL, .address = 0x0};
+
+    for(uint32_t i = 0; i < label_index; i++){
+        if(!strcmp(labels[i].name, str)){
+            return labels[i];
+        }
+    }
+    return null_label;
+}
+
+definition_t get_definition(char* str){
+    definition_t null_definition = {.name = NULL, .value = 0x0};
+
+    for(uint32_t i = 0; i < definition_index; i++){
+        if(!strcmp(definitions[i].name, str)){
+            return definitions[i];
+        }
+    }
+    return null_definition;
+}
+
 addr_modes_e get_addr_mode(char** line_array){
 
-    if(line_array[1] == NULL && line_array[2] == NULL){
-        return NOTHING;
-    }
-
     if(line_array[2] == NULL){
+        if(line_array[1] == NULL){
+            return NOTHING;
+        }
         if(is_string_register(line_array[1])){
             return REG;
         }
@@ -156,6 +221,12 @@ addr_modes_e get_addr_mode(char** line_array){
 
     switch(line_array[1][0]){
         case '$':{
+            if(is_string_label(line_array[2])){
+                parser_error("MEM_MEM addressing mode not supported");
+            }else if(is_string_definition(line_array[2])){
+                return MEM_IMMEDIATE;
+            }
+
             if(line_array[2] == NULL){
                 return MEM;
             }
@@ -172,6 +243,13 @@ addr_modes_e get_addr_mode(char** line_array){
     };
 
     if(is_string_register(line_array[1])){
+
+        if(is_string_label(line_array[2])){
+            return REG_MEM;
+        }else if(is_string_definition(line_array[2])){
+            return REG_IMMEDIATE;
+        }
+
         if(line_array[2][0] == '$'){
             return REG_MEM;
         }else if(line_array[2][0] == '#'){
@@ -244,7 +322,7 @@ void preprocess_line(char* line, uint32_t line_nmbr){
         }
 
         char* string = (char*)malloc(word1_len - 1);
-        memcpy(string, line_array[0], word1_len - 1);
+        memcpy(string, line_array[0], word1_len);
         string[word1_len] = '\0';
 
         for(uint32_t i = 0; i < definition_index; i++){
@@ -256,7 +334,6 @@ void preprocess_line(char* line, uint32_t line_nmbr){
         definition_t definition = {.value = (uint16_t)value, .name = string};
         definitions[definition_index] = definition;
         definition_index++;
-        printf("%d\n", (uint16_t)value);
     }
 }
 
