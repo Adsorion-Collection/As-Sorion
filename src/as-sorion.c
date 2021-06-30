@@ -68,7 +68,7 @@ assembler_info_t assemble(char* file_name){
    free(file_buffer);
    free(file_line_buffer);
 
-   assembler_info_t info = {.bytecode_buffer = bytecode_buffer, .bytecode_buffer_length = line_count_without_defs * 3};
+   assembler_info_t info = {.bytecode_buffer = bytecode_buffer, .bytecode_buffer_length = line_count_without_defs * 6};
    return info;
 }
 
