@@ -39,6 +39,6 @@ definition_t get_definition(char* str);
 addr_modes_e get_addr_mode(char** line_array);
 
 void preprocess_line(char* line, uint32_t line_nmbr);
-void parse_line(char* line, uint32_t line_number);
+uint16_t* parse_line(char* line, uint32_t line_number);
 
 #endif

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+extern uint32_t line_count_without_defs;
+
 static uint32_t line_number;
 label_t labels[0x400];
 definition_t definitions[0x400];
@@ -314,10 +316,13 @@ void preprocess_line(char* line, uint32_t line_nmbr){
         definition_t definition = {.value = (uint16_t)value, .name = string};
         definitions[definition_index] = definition;
         definition_index++;
+        return;
     }
+
+    line_count_without_defs++;
 }
 
-void parse_line(char* line, uint32_t line_nmbr){
+uint16_t* parse_line(char* line, uint32_t line_nmbr){
 
     line_number = line_nmbr;
 
@@ -329,13 +334,13 @@ void parse_line(char* line, uint32_t line_nmbr){
 
     if(line_array[0][strlen(line_array[0]) - 1] == ':'){
         free_line_array(line_array);
-        return;
+        return NULL;
     }
     
     if(line_array[1] != NULL){
         if(!strcmp(line_array[1], "equ")){
             free_line_array(line_array);
-            return;
+            return NULL;
         }
     }
 
@@ -361,5 +366,5 @@ void parse_line(char* line, uint32_t line_nmbr){
     uint16_t* opcode_str = gen_opcode_str(line_instruction.opcode, addr_mode, line_array);
 
     free_line_array(line_array);
-    free(opcode_str);
+    return opcode_str;
 }

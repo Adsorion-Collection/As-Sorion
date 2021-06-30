@@ -6,7 +6,7 @@ CC = gcc
 EXEC = as-sorion
 
 run: all
-	./$(EXEC) test.asm
+	./$(EXEC)
 
 all: $(OBJECTS)
 	$(CC) $^ -o $(EXEC) -Isrc -lgcc -Werror -Wall

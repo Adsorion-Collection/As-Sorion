@@ -5,7 +5,9 @@
 #include <as-sorion.h>
 #include <string.h>
 
-void assemble(char* file_name){
+uint32_t line_count_without_defs = 0;
+
+uint16_t* assemble(char* file_name){
    FILE* file = fopen(file_name, "r");
 
    uint64_t line_count = 0;
@@ -52,12 +54,21 @@ void assemble(char* file_name){
       preprocess_line(file_line_buffer[i], i); 
    }
 
-   for(uint64_t i = 0; i < line_count; i++){
-      parse_line(file_line_buffer[i], i); 
-   }
+   uint16_t* bytecode_buffer = (uint16_t*)calloc(line_count_without_defs, sizeof(uint16_t));
 
+   uint64_t bytecode_buffer_index = 0;
+   for(uint64_t i = 0; i < line_count; i++){
+      uint16_t* line_bytecode = parse_line(file_line_buffer[i], i); 
+      if(line_bytecode){
+         memcpy((void*)bytecode_buffer + bytecode_buffer_index * 6, line_bytecode, 6);
+         bytecode_buffer_index++;
+         free(line_bytecode);
+      }
+   }
    free(file_buffer);
    free(file_line_buffer);
+
+   return bytecode_buffer;
 }
 
 int main(void){
