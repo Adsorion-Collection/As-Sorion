@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <common.h>
 #include <parser.h>
 #include <arch/instruction.h>
 #include <as-sorion.h>
