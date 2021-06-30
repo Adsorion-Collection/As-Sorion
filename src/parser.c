@@ -44,6 +44,10 @@ char** get_line_array(char* line){
 
     char** line_array = (char**)malloc(0x3 * sizeof(char*));
 
+    line_array[0] = NULL;
+    line_array[1] = NULL;
+    line_array[2] = NULL;
+
     uint64_t word_index = 0;
     uint64_t whitespace_index = 0;
     for(uint64_t i = 0; i <= line_len; i++){
@@ -75,91 +79,58 @@ char** get_line_array(char* line){
         }
     }
 
-    if(whitespace_index == 0x2){
-        line_array[2] = NULL;
-    }
-
-
     return line_array;
 }
 
+static uint16_t get_operand_value(char** line_array, uint8_t operand){
+    char* operand_value_str;
+    uint64_t operand_value = 0;
+
+    if(line_array[operand] == NULL){
+        operand_value_str = NULL;
+    }else{
+        operand_value_str = line_array[operand] + 1;
+
+        if(is_string_definition(line_array[operand])){
+            operand_value = get_definition(line_array[operand]).value;
+        }else if(is_string_label(line_array[operand])){
+            operand_value = get_label(line_array[operand]).address;
+        }else{
+            if(operand_value_str != NULL){
+                if(operand_value_str[0] == 'x'){
+                    operand_value_str++;
+                    operand_value = strtol(operand_value_str, NULL, 16);
+                }else{
+                    operand_value = atoi(operand_value_str);
+                }
+            }else{
+                parser_error("Invalid instruction addressing mode");
+            }
+
+            if(operand_value > UINT16_MAX){
+                parser_error("Operand value too large to be supported");
+            }
+        }
+    }
+    return operand_value;
+}
+
 uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_array){
-
-    __attribute__((unused))char* operand1_value_str;
-    __attribute__((unused))char* operand2_value_str;
-
-    uint64_t operand1_value = 0;
-    uint64_t operand2_value = 0;
-
-    if(line_array[1] == NULL){
-        operand1_value_str = NULL;
-    }else{
-        operand1_value_str = line_array[1] + 1;
-    }
-
-    if(line_array[2] == NULL){
-        operand2_value_str = NULL;
-    }else{
-        operand2_value_str = line_array[2] + 1;
-    }
-    
-    if(operand1_value_str != NULL){
-        if(is_string_definition(line_array[1])){
-            operand1_value = get_definition(line_array[1]).value;
-        }else if(is_string_label(line_array[1])){
-            operand1_value = get_label(line_array[1]).address;
-        }else{
-            if(operand1_value_str != NULL){
-                if(operand1_value_str[0] == 'x'){
-                    operand1_value_str++;
-                    operand1_value = strtol(operand1_value_str, NULL, 16);
-                }else{
-                    operand1_value = atoi(operand1_value_str);
-                }
-            }else{
-                parser_error("Invalid instruction addressing mode");
-            }
-
-            if(operand1_value > UINT16_MAX){
-                parser_error("Operand value too large to be supported");
-            }
-        }
-    }
-
-    if(operand2_value_str != NULL){
-        if(is_string_definition(line_array[2])){
-            operand2_value = get_definition(line_array[2]).value;
-        }else if(is_string_label(line_array[2])){
-            operand2_value = get_label(line_array[2]).address;
-        }else{
-            if(operand2_value_str){
-                if(operand2_value_str[0] == 'x'){
-                    operand2_value_str++;
-                    operand2_value = strtol(operand2_value_str, NULL, 16);
-                }else{
-                    operand2_value = atoi(operand2_value_str);
-                }
-            }else{
-                parser_error("Invalid instruction addressing mode");
-            }
-
-            if(operand2_value > UINT16_MAX){
-                parser_error("Operand value too large to be supported");
-            }
-        }
-    }
-
+    uint16_t operand1_value = get_operand_value(line_array, 1);
+    uint16_t operand2_value = get_operand_value(line_array, 2);
 
     uint16_t* opcode_str = (uint16_t*)malloc(3 * sizeof(uint16_t));
     opcode_str[0] = (opcode << 8) | addr_mode;
-    opcode_str[1] = (uint16_t)operand1_value;
-    opcode_str[2] = (uint16_t)operand2_value;
     if(addr_mode == REG || addr_mode == REG_IMMEDIATE || addr_mode == REG_MEM){
         opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
+    }else{
+        opcode_str[1] = operand1_value;
     }
     if(addr_mode == REG_REG){
         opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
         opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 1] - '0');
+    }else{
+        opcode_str[2] = operand2_value;
     }
     return opcode_str;
 }
@@ -368,7 +339,7 @@ void parse_line(char* line, uint32_t line_nmbr){
         }
     }
 
-    __attribute__((unused))instruction_t line_instruction = null_instruction;
+    instruction_t line_instruction = null_instruction;
 
     for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
         if(!strcmp(line_array[0], instruction_set[i].name)){
@@ -381,17 +352,14 @@ void parse_line(char* line, uint32_t line_nmbr){
         parser_error("Unknown instruction");
     }
 
-    __attribute__((unused))addr_modes_e addr_mode = get_addr_mode(line_array);
+    addr_modes_e addr_mode = get_addr_mode(line_array);
 
     if(!(line_instruction.supported_addr_modes & addr_mode)){
         parser_error("Referenced addressing mode not supported by instruction");
     }
 
-    __attribute__((unused))uint16_t* opcode_str = gen_opcode_str(line_instruction.opcode, addr_mode, line_array);
-    printf("%d\n", opcode_str[0]);
-    printf("%d\n", opcode_str[1]);
-    printf("%d\n", opcode_str[2]);
+    uint16_t* opcode_str = gen_opcode_str(line_instruction.opcode, addr_mode, line_array);
 
     free_line_array(line_array);
-
+    free(opcode_str);
 }
