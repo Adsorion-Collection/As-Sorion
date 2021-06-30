@@ -1,4 +1,5 @@
+no equ #x38
+    STORE $x100 no
+    JMPEQ hello 
 hello:
-    STORE $x100 #x2020
     ADD $x100 #3320
-    JMPEQ hello

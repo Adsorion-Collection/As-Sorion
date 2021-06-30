@@ -11,12 +11,12 @@ uint16_t label_index = 0;
 uint16_t definition_index = 0;
 
 void parser_error(char* message){
-    printf("[ERROR][Parsing_Phase]: %s; On line: %d\n", message, line_number);
+    printf("[ERROR][Parsing_Phase]: %s; On line: %d\n", message, line_number + 1);
     exit(-1);
 }
 
 void preprocessor_error(char* message){
-    printf("[ERROR][Preprocessing_Phase]: %s; On line: %d\n", message, line_number);
+    printf("[ERROR][Preprocessing_Phase]: %s; On line: %d\n", message, line_number + 1);
     exit(-1);
 }
 
@@ -47,7 +47,7 @@ char** get_line_array(char* line){
     uint64_t word_index = 0;
     uint64_t whitespace_index = 0;
     for(uint64_t i = 0; i <= line_len; i++){
-        if(line[i] != ' ' && line[i] != '\0' && line[i] != '\n') word_index++;
+        if(line[i] != ' ' && line[i] != '\0' && line[i] != '\n' && line[i] != '\t') word_index++;
         else {
             if(line[i] == '\0' && whitespace_index == 0){
                 line_array[0] = (char*)malloc(strlen(line));
@@ -79,16 +79,17 @@ char** get_line_array(char* line){
         line_array[2] = NULL;
     }
 
+
     return line_array;
 }
 
 uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_array){
 
-    char* operand1_value_str;
-    char* operand2_value_str;
+    __attribute__((unused))char* operand1_value_str;
+    __attribute__((unused))char* operand2_value_str;
 
-    uint64_t operand1_value;
-    uint64_t operand2_value;
+    uint64_t operand1_value = 0;
+    uint64_t operand2_value = 0;
 
     if(line_array[1] == NULL){
         operand1_value_str = NULL;
@@ -102,45 +103,49 @@ uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_arr
         operand2_value_str = line_array[2] + 1;
     }
     
-    if(is_string_definition(line_array[1])){
-        operand1_value = get_definition(line_array[1]).value;
-    }else if(is_string_label(line_array[1])){
-        operand1_value = get_label(line_array[1]).address;
-    }else{
-        if(operand1_value_str != NULL){
-            if(operand1_value_str[0] == 'x'){
-                operand1_value_str++;
-                operand1_value = strtol(operand1_value_str, NULL, 16);
-            }else{
-                operand1_value = atoi(operand1_value_str);
-            }
+    if(operand1_value_str != NULL){
+        if(is_string_definition(line_array[1])){
+            operand1_value = get_definition(line_array[1]).value;
+        }else if(is_string_label(line_array[1])){
+            operand1_value = get_label(line_array[1]).address;
         }else{
-            parser_error("Invalid instruction addressing mode");
-        }
-    
-        if(operand1_value > UINT16_MAX){
-            parser_error("Operand value too large to be supported");
+            if(operand1_value_str != NULL){
+                if(operand1_value_str[0] == 'x'){
+                    operand1_value_str++;
+                    operand1_value = strtol(operand1_value_str, NULL, 16);
+                }else{
+                    operand1_value = atoi(operand1_value_str);
+                }
+            }else{
+                parser_error("Invalid instruction addressing mode");
+            }
+
+            if(operand1_value > UINT16_MAX){
+                parser_error("Operand value too large to be supported");
+            }
         }
     }
 
-    if(is_string_definition(line_array[2])){
-        operand2_value = get_definition(line_array[2]).value;
-    }else if(is_string_label(line_array[2])){
-        operand2_value = get_label(line_array[2]).address;
-    }else{
-        if(operand2_value_str){
-            if(operand2_value_str[0] == 'x'){
-                operand2_value_str++;
-                operand2_value = strtol(operand2_value_str, NULL, 16);
-            }else{
-                operand2_value = atoi(operand2_value_str);
-            }
+    if(operand2_value_str != NULL){
+        if(is_string_definition(line_array[2])){
+            operand2_value = get_definition(line_array[2]).value;
+        }else if(is_string_label(line_array[2])){
+            operand2_value = get_label(line_array[2]).address;
         }else{
-            parser_error("Invalid instruction addressing mode");
-        }
+            if(operand2_value_str){
+                if(operand2_value_str[0] == 'x'){
+                    operand2_value_str++;
+                    operand2_value = strtol(operand2_value_str, NULL, 16);
+                }else{
+                    operand2_value = atoi(operand2_value_str);
+                }
+            }else{
+                parser_error("Invalid instruction addressing mode");
+            }
 
-        if(operand2_value > UINT16_MAX){
-            parser_error("Operand value too large to be supported");
+            if(operand2_value > UINT16_MAX){
+                parser_error("Operand value too large to be supported");
+            }
         }
     }
 
@@ -216,6 +221,10 @@ addr_modes_e get_addr_mode(char** line_array){
         }
         if(is_string_register(line_array[1])){
             return REG;
+        }else if(is_string_label(line_array[1])){
+            return MEM;
+        }else if(is_string_definition(line_array[1])){
+            parser_error("Immediate only addressing mode not supported");
         }
     }
 
@@ -280,7 +289,7 @@ void preprocess_line(char* line, uint32_t line_nmbr){
         
         char* string = (char*)malloc(word1_len - 1);
         memcpy(string, line_array[0], word1_len - 1);
-        string[word1_len] = '\0';
+        string[word1_len - 1] = '\0';
 
         for(uint32_t i = 0; i < label_index; i++){
             if(!strcmp(labels[i].name, string)){
@@ -359,7 +368,7 @@ void parse_line(char* line, uint32_t line_nmbr){
         }
     }
 
-    instruction_t line_instruction = null_instruction;
+    __attribute__((unused))instruction_t line_instruction = null_instruction;
 
     for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
         if(!strcmp(line_array[0], instruction_set[i].name)){
@@ -372,13 +381,13 @@ void parse_line(char* line, uint32_t line_nmbr){
         parser_error("Unknown instruction");
     }
 
-    addr_modes_e addr_mode = get_addr_mode(line_array);
+    __attribute__((unused))addr_modes_e addr_mode = get_addr_mode(line_array);
 
     if(!(line_instruction.supported_addr_modes & addr_mode)){
         parser_error("Referenced addressing mode not supported by instruction");
     }
 
-    uint16_t* opcode_str = gen_opcode_str(line_instruction.opcode, addr_mode, line_array);
+    __attribute__((unused))uint16_t* opcode_str = gen_opcode_str(line_instruction.opcode, addr_mode, line_array);
     printf("%d\n", opcode_str[0]);
     printf("%d\n", opcode_str[1]);
     printf("%d\n", opcode_str[2]);
