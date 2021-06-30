@@ -7,7 +7,7 @@
 
 uint32_t line_count_without_defs = 0;
 
-uint16_t* assemble(char* file_name){
+assembler_info_t assemble(char* file_name){
    FILE* file = fopen(file_name, "r");
 
    uint64_t line_count = 0;
@@ -68,7 +68,8 @@ uint16_t* assemble(char* file_name){
    free(file_buffer);
    free(file_line_buffer);
 
-   return bytecode_buffer;
+   assembler_info_t info = {.bytecode_buffer = bytecode_buffer, .bytecode_buffer_length = line_count_without_defs * 3};
+   return info;
 }
 
 int main(void){
