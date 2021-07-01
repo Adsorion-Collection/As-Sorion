@@ -127,7 +127,7 @@ uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_arr
         if(line_array[1][strlen(line_array[1]) - 1] == 'l'){
             opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 15);
         }else if(line_array[1][strlen(line_array[1]) - 1] == 'h'){
-            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0');
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 14);
         }else{
             opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
         }
@@ -141,12 +141,12 @@ uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_arr
         if(line_array[1][strlen(line_array[1]) - 1] == 'l'){
             opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 15);
         }else if(line_array[1][strlen(line_array[1]) - 1] == 'h'){
-            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0');
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 14);
         }
         if(line_array[2][strlen(line_array[2]) - 1] == 'l'){
             opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 2] - '0') | (1 << 15);
         }else if(line_array[2][strlen(line_array[2]) - 1] == 'h'){
-            opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 2] - '0');
+            opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 2] - '0') | (1 << 14);
         }
     }else{
         opcode_str[2] = operand2_value;
