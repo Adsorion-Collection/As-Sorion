@@ -10,6 +10,10 @@ uint32_t line_count_without_defs = 0;
 assembler_info_t assemble(char* file_name){
    FILE* file = fopen(file_name, "r");
 
+   if(file == NULL){
+      printf("Couldn't find file to assemble! Path: %s\n", file_name);
+   }
+
    uint64_t line_count = 0;
    uint64_t file_length = 0;
    char c = fgetc(file);
