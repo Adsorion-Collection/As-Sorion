@@ -2,7 +2,7 @@
 #define __PARSER_H
 
 #include <stdint.h>
-#include <arch/instruction.h>
+#include <as-arch/instruction.h>
 #include <stdbool.h>
 
 typedef struct{

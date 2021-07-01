@@ -1,4 +1,4 @@
-#include <arch/instruction.h>
+#include <as-arch/instruction.h>
 #include <stddef.h>
 
 char* REG_strings[REGISTER_COUNT];
