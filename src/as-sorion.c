@@ -71,8 +71,3 @@ assembler_info_t assemble(char* file_name){
    assembler_info_t info = {.bytecode_buffer = bytecode_buffer, .bytecode_buffer_length = line_count_without_defs * 6};
    return info;
 }
-
-int main(void){
-   register_instructions();
-   assemble("test.asm");
-}
