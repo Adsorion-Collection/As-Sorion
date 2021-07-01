@@ -44,7 +44,7 @@ void register_instructions(){
     register_instruction(JMPEQ_STR, 0x4, (REG | MEM));
     register_instruction(JMPMR_STR, 0x5, (REG | MEM));
     register_instruction(CMP_STR, 0x6, (REG_MEM | REG_IMMEDIATE | MEM_REG | MEM_IMMEDIATE | REG_REG));
-    register_instruction(NOT_STR, 0x7, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
+    register_instruction(NOT_STR, 0x7, (MEM | REG));
     register_instruction(AND_STR, 0x8, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
     register_instruction(OR_STR, 0x9, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
     register_instruction(SHL_STR, 0xA, (REG_REG | REG_MEM | REG_IMMEDIATE));
