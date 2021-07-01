@@ -1,9 +1,9 @@
 #include <as-arch/instruction.h>
 #include <stddef.h>
 
-char* REG_strings[REGISTER_COUNT];
+char* REG_strings[AS_REGISTER_COUNT];
 
-instruction_t instruction_set[INSTRUCTIONS_COUNT];
+instruction_t instruction_set[AS_INSTRUCTIONS_COUNT];
 const instruction_t null_instruction = {.name = NULL_STR, .opcode = 0, .supported_addr_modes = 0};
 
 void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap){
@@ -20,7 +20,20 @@ void register_instructions(){
     REG_strings[4] = "REG4";
     REG_strings[5] = "REG5";
     
-    for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
+    REG_strings[6] = "REG0l";
+    REG_strings[7] = "REG0h";
+    REG_strings[8] = "REG1l";
+    REG_strings[9] = "REG1h";
+    REG_strings[10] = "REG2l";
+    REG_strings[11] = "REG2h";
+    REG_strings[12] = "REG3l";
+    REG_strings[13] = "REG3h";
+    REG_strings[14] = "REG4l";
+    REG_strings[15] = "REG4h";
+    REG_strings[16] = "REG5l";
+    REG_strings[17] = "REG5h";
+
+    for(uint64_t i = 0; i < AS_INSTRUCTIONS_COUNT; i++){
         instruction_set[i] = null_instruction;
     }
 

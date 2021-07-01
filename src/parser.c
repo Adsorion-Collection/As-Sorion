@@ -121,24 +121,48 @@ uint16_t* gen_opcode_str(uint8_t opcode, addr_modes_e addr_mode, char** line_arr
     uint16_t operand1_value = get_operand_value(line_array, 1);
     uint16_t operand2_value = get_operand_value(line_array, 2);
 
-    uint16_t* opcode_str = (uint16_t*)malloc(3 * sizeof(uint16_t));
+    uint16_t* opcode_str = (uint16_t*)calloc(3, sizeof(uint16_t));
     opcode_str[0] = (opcode << 8) | addr_mode;
     if(addr_mode == REG || addr_mode == REG_IMMEDIATE || addr_mode == REG_MEM){
-        opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
+        if(line_array[1][strlen(line_array[1]) - 1] == 'l'){
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 15);
+        }else if(line_array[1][strlen(line_array[1]) - 1] == 'h'){
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0');
+        }else{
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
+        }
     }else{
         opcode_str[1] = operand1_value;
     }
+
     if(addr_mode == REG_REG){
         opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 1] - '0');
         opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 1] - '0');
+        if(line_array[1][strlen(line_array[1]) - 1] == 'l'){
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0') | (1 << 15);
+        }else if(line_array[1][strlen(line_array[1]) - 1] == 'h'){
+            opcode_str[1] = (uint16_t)(line_array[1][strlen(line_array[1]) - 2] - '0');
+        }
+        if(line_array[2][strlen(line_array[2]) - 1] == 'l'){
+            opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 2] - '0') | (1 << 15);
+        }else if(line_array[2][strlen(line_array[2]) - 1] == 'h'){
+            opcode_str[2] = (uint16_t)(line_array[2][strlen(line_array[2]) - 2] - '0');
+        }
     }else{
         opcode_str[2] = operand2_value;
     }
+
+    if(addr_mode == MEM_IMMEDIATE && operand2_value > UINT8_MAX){
+        parser_error("Can't store 16 bit values in MEM_IMMEDIATE addressing mode");
+    }
+
+    printf("%d %d %d\n", opcode_str[0], opcode_str[1], opcode_str[2]);
+
     return opcode_str;
 }
 
 bool is_string_register(char* str){
-    for(uint32_t i = 0; i < REGISTER_COUNT; i++){
+    for(uint32_t i = 0; i < AS_REGISTER_COUNT; i++){
         if(!strcmp(REG_strings[i], str)){
             return true;
         }
@@ -346,7 +370,7 @@ uint16_t* parse_line(char* line, uint32_t line_nmbr){
 
     instruction_t line_instruction = null_instruction;
 
-    for(uint64_t i = 0; i < INSTRUCTIONS_COUNT; i++){
+    for(uint64_t i = 0; i < AS_INSTRUCTIONS_COUNT; i++){
         if(!strcmp(line_array[0], instruction_set[i].name)){
             line_instruction = instruction_set[i];
             break;

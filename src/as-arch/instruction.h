@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INSTRUCTIONS_COUNT 0xC
-#define REGISTER_COUNT 0x6
+#define AS_INSTRUCTIONS_COUNT 0xC
+#define AS_REGISTER_COUNT 0x12
 
 #define NULL_STR "NULL"
 #define STORE_STR "STORE"
@@ -31,7 +31,7 @@ typedef enum{
     NOTHING = 1 << 7
 } addr_modes_e;
 
-extern char* REG_strings[REGISTER_COUNT];
+extern char* REG_strings[AS_REGISTER_COUNT];
 
 typedef struct{
     char* name;
@@ -39,7 +39,7 @@ typedef struct{
     uint8_t supported_addr_modes; // Bitmap of supported addressing modes
 } instruction_t;
 
-extern instruction_t instruction_set[INSTRUCTIONS_COUNT];
+extern instruction_t instruction_set[AS_INSTRUCTIONS_COUNT];
 extern const instruction_t null_instruction;
 
 void register_instruction(char* name, uint8_t opcode, uint8_t addr_mode_bitmap);
