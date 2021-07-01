@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INSTRUCTIONS_COUNT 0xA
+#define INSTRUCTIONS_COUNT 0xC
 #define REGISTER_COUNT 0x6
 
 #define NULL_STR "NULL"
@@ -17,6 +17,8 @@
 #define NOT_STR "NOT"
 #define AND_STR "AND"
 #define OR_STR "OR"
+#define SHL_STR "SHL"
+#define SHR_STR "SHR"
 
 typedef enum{
     MEM = 1 << 0,

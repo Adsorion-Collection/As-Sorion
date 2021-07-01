@@ -34,5 +34,7 @@ void register_instructions(){
     register_instruction(NOT_STR, 0x7, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
     register_instruction(AND_STR, 0x8, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
     register_instruction(OR_STR, 0x9, (REG_REG | REG_MEM | REG_IMMEDIATE | MEM_IMMEDIATE | MEM_REG));
+    register_instruction(SHL_STR, 0xA, (REG_REG | REG_MEM | REG_IMMEDIATE));
+    register_instruction(SHR_STR, 0xB, (REG_REG | REG_MEM | REG_IMMEDIATE));
 
 }
